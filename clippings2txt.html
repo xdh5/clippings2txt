@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+window.onload = function() {
+    let result = ''
+
+    // Deal initial file to finished file
+    function dealFile(text){
+        result = ''
+        const textList1 = text.split('==========').map(splitText => {
+            if(splitText.trim()){
+                const title = splitText.split('(')[0].replace(/\（.*?\）/g,'').replace(/\【.*?\】/g,'').trim()
+                const auther = splitText.match(/\((.+?)\)/g).pop().slice(1,-1)
+                const content = splitText.split('\n').filter(i => i && i !== '\r').pop().replace(/\r/g,'').trim()
+                return {
+                    title,
+                    auther,
+                    content
+                }
+            }
+        })
+        let textList2 = []
+        for(let i=0; i < textList1.length; i++){
+            if(textList1[i]){
+                if(i === 0){
+                    textList2.push({
+                        auther: textList1[i].auther,
+                        title: textList1[i].title,
+                        content: [textList1[i].content]
+                    })
+                }else if(textList1[i].auther === textList1[i-1].auther && textList1[i].title === textList1[i-1].title){
+                    textList2[textList2.length-1].content.push(textList1[i].content)
+                }else{
+                    textList2.push({
+                        auther: textList1[i].auther,
+                        title: textList1[i].title,
+                        content: [textList1[i].content]
+                    })
+                }
+            }
+        }
+        textList2.forEach((value, index)=>{
+            let contentStr = ''
+            value.content.forEach((v,i) => {
+                contentStr += `${i+1 + '. ' + v + '\n'}`
+            })
+            result += `${value.title + '  ' + value.auther + '\n' + contentStr + '\n'}`
+        })
+    }
+    inputButton.addEventListener('click', ()=>{
+        input.click()
+    })
+
+    // Read file and deal it
+    input.addEventListener("change", function addDoc(event) {
+        const file = this.files[0]
+        const reader = new FileReader()
+        reader.onload = function(e) {
+            const text = reader.result
+            dealFile(text)
+            display.textContent = result
+            inputButton.innerHTML = file.name
+            button.removeAttribute("disabled")
+        }
+        reader.onerror = function(err) {
+            alert(err, err.loaded
+                        , err.loaded === 0
+                        , file)
+            button.removeAttribute("disabled")
+        }
+        reader.readAsText(event.target.files[0]);
+    })
+
+    // Down load finished file
+    button.addEventListener("click", function handleText() {
+        alert('20210521' + ' ^-^')
+        download.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(result))
+        download.setAttribute('download', 'download')
+        button.setAttribute("disabled", "disabled")
+    })
+}
+</script>
+<body>
+    <div class="wrapper">
+        <button class="upload" id="inputButton">点击上传文件</button>
+        <input type="file" id="input" accept="text/*">
+        <button class="download" type="button" id="button" disabled><a id="download">保存文件</a></button>
+        <textarea id="display"></textarea>
+    </div>
+</body>
+<style>
+body{
+    margin: 0;
+    padding: 10px;
+    background: rgb(246,246,246);
+}
+.wrapper{
+    border: 2px dashed #469456;
+    padding: 20px;
+    position: relative;
+}
+.upload{
+    width: 100%;
+    height: 50px;
+    font-size: 20px;
+    color: #797979;
+    line-height: 2;
+    position: relative;
+}
+.download{
+    position: absolute;
+    height: 40px;
+    width: 100px;
+    bottom: 20px;
+    right: 20px;
+    z-index: 99;
+}
+.download a, .download a:link {
+    color: #797979;
+    text-decoration:none
+}
+#input{
+    width: 100%;
+    height: 50px;
+    display: none;
+    z-index: 99;
+}
+textarea {
+    display: block;
+    margin-top: 20px;
+    width: 85vw;
+    height: 75vh;
+    background: rgb(246,246,246);
+}
+
+</style>
+</head>
+</html>
